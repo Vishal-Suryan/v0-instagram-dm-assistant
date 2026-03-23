@@ -53,10 +53,10 @@ export function ChatPanel({ conversation }: ChatPanelProps) {
       
       setIsLoading(false)
 
-      // Mark conversation as read
+      // Mark conversation as read (reset unread count)
       await supabase
         .from('conversations')
-        .update({ is_unread: false })
+        .update({ unread_count: 0 })
         .eq('id', conversation.id)
     }
 
@@ -103,14 +103,20 @@ export function ChatPanel({ conversation }: ChatPanelProps) {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || isSending) return
 
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
     const tempId = crypto.randomUUID()
     const tempMessage: Message = {
       id: tempId,
       conversation_id: conversation.id,
+      user_id: user.id,
       sender_type: 'user',
       content: newMessage.trim(),
       status: 'sending',
+      is_ai_suggested: false,
       created_at: new Date().toISOString(),
+      sent_at: null,
     }
 
     // Optimistic update
@@ -122,9 +128,11 @@ export function ChatPanel({ conversation }: ChatPanelProps) {
       .from('messages')
       .insert({
         conversation_id: conversation.id,
+        user_id: user.id,
         sender_type: 'user',
         content: tempMessage.content,
         status: 'sent',
+        is_ai_suggested: false,
       })
       .select()
       .single()
@@ -197,14 +205,13 @@ export function ChatPanel({ conversation }: ChatPanelProps) {
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b shrink-0">
         <Avatar className="h-10 w-10">
-          <AvatarImage src={conversation.contact_avatar_url || undefined} />
+          <AvatarImage src={conversation.instagram_avatar_url || undefined} />
           <AvatarFallback>
-            {conversation.contact_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+            {conversation.instagram_username.slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
         <div>
-          <h2 className="font-semibold">{conversation.contact_name}</h2>
-          <p className="text-sm text-muted-foreground">@{conversation.contact_username}</p>
+          <h2 className="font-semibold">@{conversation.instagram_username}</h2>
         </div>
       </div>
 
@@ -250,7 +257,7 @@ export function ChatPanel({ conversation }: ChatPanelProps) {
       {/* AI Suggestions */}
       <AiSuggestions
         messages={recentMessages}
-        contactName={conversation.contact_name}
+        contactName={conversation.instagram_username}
         onUseSuggestion={handleUseSuggestion}
       />
 
