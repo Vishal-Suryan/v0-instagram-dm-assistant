@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Empty } from '@/components/ui/empty'
 import { Search, MessageSquare } from 'lucide-react'
-import type { Conversation, Message } from '@/lib/types/database'
+import type { Conversation } from '@/lib/types/database'
 import { formatDistanceToNow } from 'date-fns'
 
 interface ConversationListProps {
@@ -17,12 +17,8 @@ interface ConversationListProps {
   onSelect: (conversation: Conversation) => void
 }
 
-interface ConversationWithLastMessage extends Conversation {
-  last_message?: Message
-}
-
 export function ConversationList({ selectedId, onSelect }: ConversationListProps) {
-  const [conversations, setConversations] = useState<ConversationWithLastMessage[]>([])
+  const [conversations, setConversations] = useState<Conversation[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const supabase = createClient()
@@ -34,7 +30,7 @@ export function ConversationList({ selectedId, onSelect }: ConversationListProps
       const { data: conversationsData, error } = await supabase
         .from('conversations')
         .select('*')
-        .order('last_message_at', { ascending: false })
+        .order('last_message_at', { ascending: false, nullsFirst: false })
 
       if (error) {
         console.error('Error fetching conversations:', error)
@@ -42,24 +38,7 @@ export function ConversationList({ selectedId, onSelect }: ConversationListProps
         return
       }
 
-      // Fetch last message for each conversation
-      const conversationsWithMessages = await Promise.all(
-        (conversationsData || []).map(async (conv) => {
-          const { data: messages } = await supabase
-            .from('messages')
-            .select('*')
-            .eq('conversation_id', conv.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-
-          return {
-            ...conv,
-            last_message: messages?.[0] || undefined,
-          }
-        })
-      )
-
-      setConversations(conversationsWithMessages)
+      setConversations(conversationsData || [])
       setIsLoading(false)
     }
 
@@ -81,32 +60,13 @@ export function ConversationList({ selectedId, onSelect }: ConversationListProps
       )
       .subscribe()
 
-    // Subscribe to realtime updates for messages (to update last message)
-    const messagesChannel = supabase
-      .channel('messages-for-list')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-        },
-        () => {
-          fetchConversations()
-        }
-      )
-      .subscribe()
-
     return () => {
       supabase.removeChannel(conversationsChannel)
-      supabase.removeChannel(messagesChannel)
     }
   }, [supabase])
 
-  const filteredConversations = conversations.filter(
-    (conv) =>
-      conv.contact_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      conv.contact_username.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredConversations = conversations.filter((conv) =>
+    conv.instagram_username.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   if (isLoading) {
@@ -164,38 +124,38 @@ export function ConversationList({ selectedId, onSelect }: ConversationListProps
                 )}
               >
                 <Avatar className="h-12 w-12 shrink-0">
-                  <AvatarImage src={conversation.contact_avatar_url || undefined} />
+                  <AvatarImage src={conversation.instagram_avatar_url || undefined} />
                   <AvatarFallback>
-                    {conversation.contact_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    {conversation.instagram_username.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <span className={cn(
                       'font-medium truncate',
-                      conversation.is_unread && 'font-semibold'
+                      conversation.unread_count > 0 && 'font-semibold'
                     )}>
-                      {conversation.contact_name}
+                      @{conversation.instagram_username}
                     </span>
-                    <span className="text-xs text-muted-foreground shrink-0">
-                      {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: false })}
-                    </span>
+                    {conversation.last_message_at && (
+                      <span className="text-xs text-muted-foreground shrink-0">
+                        {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: false })}
+                      </span>
+                    )}
                   </div>
-                  <p className="text-xs text-muted-foreground truncate">
-                    @{conversation.contact_username}
-                  </p>
-                  {conversation.last_message && (
+                  {conversation.last_message_preview && (
                     <p className={cn(
                       'text-sm truncate mt-1',
-                      conversation.is_unread ? 'text-foreground font-medium' : 'text-muted-foreground'
+                      conversation.unread_count > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'
                     )}>
-                      {conversation.last_message.sender_type === 'user' && 'You: '}
-                      {conversation.last_message.content}
+                      {conversation.last_message_preview}
                     </p>
                   )}
                 </div>
-                {conversation.is_unread && (
-                  <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1" />
+                {conversation.unread_count > 0 && (
+                  <div className="flex items-center justify-center h-5 min-w-5 px-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium shrink-0">
+                    {conversation.unread_count}
+                  </div>
                 )}
               </button>
             ))}
