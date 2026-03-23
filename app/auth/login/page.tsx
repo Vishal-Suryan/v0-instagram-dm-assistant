@@ -24,19 +24,26 @@ export default function LoginPage() {
     setError(null)
     setIsLoading(true)
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    if (error) {
-      setError(error.message)
+      if (error) {
+        console.error('[v0] Sign in error:', error.message)
+        setError(error.message)
+        setIsLoading(false)
+        return
+      }
+
+      router.push('/dashboard')
+      router.refresh()
+    } catch (err) {
+      console.error('[v0] Unexpected login error:', err)
+      setError('Unable to connect to authentication service. Please try again.')
       setIsLoading(false)
-      return
     }
-
-    router.push('/dashboard')
-    router.refresh()
   }
 
   async function handleGoogleLogin() {
