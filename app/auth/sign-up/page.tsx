@@ -25,25 +25,38 @@ export default function SignUpPage() {
     setError(null)
     setIsLoading(true)
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-          `${window.location.origin}/auth/callback`,
-        data: {
-          full_name: fullName,
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
+            `${window.location.origin}/auth/callback`,
+          data: {
+            full_name: fullName,
+          },
         },
-      },
-    })
+      })
 
-    if (error) {
-      setError(error.message)
+      if (error) {
+        setError(error.message)
+        setIsLoading(false)
+        return
+      }
+
+      // If user is confirmed immediately (no email confirmation required), go to dashboard
+      if (data.session) {
+        router.push('/dashboard')
+        router.refresh()
+      } else {
+        // Email confirmation required
+        router.push('/auth/sign-up-success')
+      }
+    } catch (err) {
+      console.error('[v0] Unexpected signup error:', err)
+      setError('Unable to create account. Please try again.')
       setIsLoading(false)
-      return
     }
-
-    router.push('/auth/sign-up-success')
   }
 
   async function handleGoogleSignUp() {

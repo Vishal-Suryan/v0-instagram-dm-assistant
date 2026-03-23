@@ -31,7 +31,6 @@ export default function LoginPage() {
       })
 
       if (error) {
-        console.error('[v0] Sign in error:', error.message)
         setError(error.message)
         setIsLoading(false)
         return
@@ -39,8 +38,7 @@ export default function LoginPage() {
 
       router.push('/dashboard')
       router.refresh()
-    } catch (err) {
-      console.error('[v0] Unexpected login error:', err)
+    } catch {
       setError('Unable to connect to authentication service. Please try again.')
       setIsLoading(false)
     }
