@@ -19,29 +19,29 @@ BEGIN
   END IF;
 
   -- Create sample conversations
-  INSERT INTO public.conversations (id, user_id, instagram_username, instagram_user_id, instagram_avatar_url, last_message_preview, unread_count, last_message_at)
+  INSERT INTO public.conversations (id, user_id, contact_name, contact_username, instagram_user_id, contact_avatar_url, last_message_preview, is_unread, last_message_at)
   VALUES 
-    (gen_random_uuid(), target_user_id, 'sarah_designs', 'ig_001', 'https://api.dicebear.com/7.x/avataaars/svg?seed=sarah', 'Love your latest post! Can we collab?', 2, NOW() - INTERVAL '5 minutes')
+    (gen_random_uuid(), target_user_id, 'Sarah Designs', 'sarah_designs', 'ig_001', 'https://api.dicebear.com/7.x/avataaars/svg?seed=sarah', 'Love your latest post! Can we collab?', true, NOW() - INTERVAL '5 minutes')
   RETURNING id INTO conv1_id;
 
-  INSERT INTO public.conversations (id, user_id, instagram_username, instagram_user_id, instagram_avatar_url, last_message_preview, unread_count, last_message_at)
+  INSERT INTO public.conversations (id, user_id, contact_name, contact_username, instagram_user_id, contact_avatar_url, last_message_preview, is_unread, last_message_at)
   VALUES 
-    (gen_random_uuid(), target_user_id, 'tech_mike', 'ig_002', 'https://api.dicebear.com/7.x/avataaars/svg?seed=mike', 'Thanks for the quick response!', 0, NOW() - INTERVAL '2 hours')
+    (gen_random_uuid(), target_user_id, 'Tech Mike', 'tech_mike', 'ig_002', 'https://api.dicebear.com/7.x/avataaars/svg?seed=mike', 'Thanks for the quick response!', false, NOW() - INTERVAL '2 hours')
   RETURNING id INTO conv2_id;
 
-  INSERT INTO public.conversations (id, user_id, instagram_username, instagram_user_id, instagram_avatar_url, last_message_preview, unread_count, last_message_at)
+  INSERT INTO public.conversations (id, user_id, contact_name, contact_username, instagram_user_id, contact_avatar_url, last_message_preview, is_unread, last_message_at)
   VALUES 
-    (gen_random_uuid(), target_user_id, 'fitness_emma', 'ig_003', 'https://api.dicebear.com/7.x/avataaars/svg?seed=emma', 'What are your rates for sponsored posts?', 1, NOW() - INTERVAL '1 day')
+    (gen_random_uuid(), target_user_id, 'Emma Fitness', 'fitness_emma', 'ig_003', 'https://api.dicebear.com/7.x/avataaars/svg?seed=emma', 'What are your rates for sponsored posts?', true, NOW() - INTERVAL '1 day')
   RETURNING id INTO conv3_id;
 
-  INSERT INTO public.conversations (id, user_id, instagram_username, instagram_user_id, instagram_avatar_url, last_message_preview, unread_count, last_message_at)
+  INSERT INTO public.conversations (id, user_id, contact_name, contact_username, instagram_user_id, contact_avatar_url, last_message_preview, is_unread, last_message_at)
   VALUES 
-    (gen_random_uuid(), target_user_id, 'brand_official', 'ig_004', 'https://api.dicebear.com/7.x/avataaars/svg?seed=brand', 'We would love to discuss a partnership', 3, NOW() - INTERVAL '3 days')
+    (gen_random_uuid(), target_user_id, 'Brand Official', 'brand_official', 'ig_004', 'https://api.dicebear.com/7.x/avataaars/svg?seed=brand', 'We would love to discuss a partnership', true, NOW() - INTERVAL '3 days')
   RETURNING id INTO conv4_id;
 
-  INSERT INTO public.conversations (id, user_id, instagram_username, instagram_user_id, instagram_avatar_url, last_message_preview, unread_count, last_message_at)
+  INSERT INTO public.conversations (id, user_id, contact_name, contact_username, instagram_user_id, contact_avatar_url, last_message_preview, is_unread, last_message_at)
   VALUES 
-    (gen_random_uuid(), target_user_id, 'photo_alex', 'ig_005', 'https://api.dicebear.com/7.x/avataaars/svg?seed=alex', 'Great meeting you at the event!', 0, NOW() - INTERVAL '1 week')
+    (gen_random_uuid(), target_user_id, 'Alex Photo', 'photo_alex', 'ig_005', 'https://api.dicebear.com/7.x/avataaars/svg?seed=alex', 'Great meeting you at the event!', false, NOW() - INTERVAL '1 week')
   RETURNING id INTO conv5_id;
 
   -- Seed messages for conversation 1 (sarah_designs)

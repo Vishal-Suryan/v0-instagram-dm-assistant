@@ -44,7 +44,7 @@ interface AppSidebarProps {
 
 const navigation = [
   { name: 'Messages', href: '/dashboard', icon: MessageSquare },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+  { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { name: 'Tags', href: '/dashboard/tags', icon: Tag },
 ]
 

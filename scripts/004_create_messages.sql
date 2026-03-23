@@ -67,9 +67,9 @@ BEGIN
   SET 
     last_message_at = NEW.created_at,
     last_message_preview = LEFT(NEW.content, 100),
-    unread_count = CASE 
-      WHEN NEW.sender_type = 'contact' THEN unread_count + 1 
-      ELSE 0 
+    is_unread = CASE 
+      WHEN NEW.sender_type = 'contact' THEN true 
+      ELSE is_unread 
     END,
     updated_at = NOW()
   WHERE id = NEW.conversation_id;
